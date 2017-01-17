@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>giphy</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<link href="assets/css/style.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+	<div id = 'container'>
+              <!-- Here we create the text box for capturing the search term-->
+              <div class="form-group">
+                <label for="search" style="display: inline-block;">Search Term:</label>
+                <input type="text" class="form-control search" id="search-term" style="display: inline-block;">
+                <button type="submit" class="btn btn-default" id="add-topic" style="display: inline-block;"><i class="fa fa-search"></i> Add New Topic</button>
+                
+			  <div id='updateDiv'>
+                <input type="number" class="form-control limit" id="limit" value ="10" style="display: inline-block;">
+                <button type="submit" class="btn btn-default" id="update-limit" style="display: inline-block;"><i class="fa fa-search"></i>Update number of results returned</button>
+              </div>
+
+
+              </div>
+
+		      <div id='buttons'></div>
+</div>
+<div id='pics'></div>
+  
+
+<script>
+		
+//giphy api: <!-- https://api.giphy.com/v1/gifs/search?q=funny+cat&api_key=dc6zaTOxFJmzC&limit=1&offset=0 -->
+
+// slug: https://media.giphy.com/media/10JNXHM9qUyIZq/giphy.gif
+
+	var topicsArray = ['pizza','waterslides','backflips'];
+	var query;
+	var buttonArray = [];
+	var limit = 10;
+	var currentSearch = "";
+
+	//listener for add topic button
+	$('#add-topic').click(function(){
+		var searchTerm = $('#search-term').val().trim();
+
+		if (searchTerm.length > 1){
+			topicsArray.push(searchTerm);
+			createButtons(topicsArray);
+		}
+	});
+
+	$('#update-limit').click(function(){
+		limit = $('#limit').val().trim();
+		createButtons(topicsArray);
+		//show pics with new limit for last/current button press
+		query = queryBuilder(currentSearch);
+		$('.imgDiv').remove();
+		showPics();
+
+	});
+
+	function makeStringFromArray(a) {
+		var retString ="";
+		for (i in topicsArray) {
+			retString += topicsArray[i] + "+";
+		}
+		return retString.slice(0, -1);
+	}
+
+
+
+
+	function queryBuilder(s){
+		return ('https://api.giphy.com/v1/gifs/search?q=' + s + '&api_key=dc6zaTOxFJmzC&limit=' + limit + '&offset=0');
+	}
+
+	function createButtons(a){
+		$('.buttonDiv').remove();
+		for (i in a) {
+            var r = $('<input/>').attr({
+                type: "button",
+                id: "btn_"+i,
+                value: a[i],
+                'data-buttonID': i,
+                hasBeenClicked: "f",
+                class: 'topicButton btn-lg'
+            }).on("click", function() {
+            	$('.imgDiv').remove();
+            	currentSearch = $(this).attr("value");
+            	if ($(this).attr("hasBeenClicked") === 'f'){
+	            	query = queryBuilder($(this).attr("value"));
+	            	showPics();
+	            	//set all topic buttons  hasbeenclicked to 'f'
+	            	$('.topicButton').attr('hasBeenClicked', 'f');
+	            	$(this).attr("hasBeenClicked", 't');
+            	}
+            	else{
+            		$(this).attr("hasBeenClicked", "f");
+            	}
+
+            });
+
+            var d = $('<div>').attr({id: 'buttonDiv_' + i, class: 'buttonDiv'});
+            //append 
+            d.append(r);
+    		//append button
+    		$('#buttons').append(d);
+		}
+	}
+
+	function slugImage(s) {
+		return "https://media.giphy.com/media/" + s +"/giphy.gif";
+	}
+
+	function showPics() {
+		$.ajax({
+    		url: query,
+    		method: "GET"
+  			}).done(function(gifData) {
+  				console.log(gifData.data);
+  				for (i in gifData.data) {
+  					var original = gifData.data[i].images.original.url
+  					var stillURL = gifData.data[i].images.fixed_width_still.url;
+  					var animated = gifData.data[i].images.fixed_width.url;
+  					var rating = gifData.data[i].rating;
+  					var source = gifData.data[i].source;
+  					//creating image, adding data
+  					var b = $('<img>').attr({
+  						src: stillURL,
+  						alt: stillURL,
+  						class: 'gif',
+  						'data-animate': animated,
+  						'data-still': stillURL,
+  						'data-state': "still",
+  						'data-source': source,
+  						'data-original': original
+  					}).on("click", function() {
+  						//adding animate toggle
+					    var state = $(this).attr("data-state");
+					    // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+					    // Then, set the image's data-state to animate
+					    // Else set src to the data-still value
+					    if (state === "still") {
+					       $(this).attr("src", $(this).attr("data-animate"));
+					       $(this).attr("data-state", "animate");
+					    } else {
+					        $(this).attr("src", $(this).attr("data-still"));
+					        $(this).attr("data-state", "still");
+					    }
+					});
+					//creating ratings span
+					var r = $('<span>').attr({
+						class: 'rating'
+					});
+					r.text(rating);
+					console.log(rating);
+
+					//creating button to link to source
+					var sourceBut = $('<input/>').attr({
+                		type: "button",
+                		id: 'srcBut_' + i,
+                		value: "Source",
+                		class: 'srcButton',
+                		'data-source': source
+                	}).on("click", function() {
+                		window.open($(this).attr('data-source'));
+                	});
+
+                	var originalBut = $('<input/>').attr({
+                		type: "button",
+                		id: 'ogBut_' + i,
+                		value: "Original",
+                		class: 'ogButton srcButton',
+                		'data-original': original,
+                		style: 'margin-left: 5px'
+                	}).on("click", function() {
+                		window.open($(this).attr('data-original'));
+                	});
+
+
+
+  					b.addClass('img_' + i);
+  					r.addClass('img_' + i);
+  					sourceBut.addClass('img_' + i);
+  					originalBut.addClass('img_' + i);
+
+
+
+  					var newDiv = $('<div>').attr({
+  						id: 'imgDiv_' + i,
+  						class: 'imgDiv'
+  					});
+  					newDiv.append(b);
+  					newDiv.append(r);
+  					if (source != ""){
+  						newDiv.append(sourceBut);
+  					}
+  					if (original != ""){
+  						newDiv.append(originalBut);
+  					}
+  					$('#pics').append(newDiv);
+  				}		
+  			});
+	}
+
+	function run(){
+		createButtons(topicsArray);
+		//query = queryBuilder(makeStringFromArray(topicsArray));
+		//showPics();
+	}
+
+	run();
+
+
+
+	console.log(makeStringFromArray(topicsArray));
+
+</script>
+</body>
+
+
+</html>
