@@ -2,12 +2,16 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>giphy</title>
+    <title>GiphyApp</title>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	<link href="assets/css/style.css" rel="stylesheet">
 
 </head>
+
+<!-- GiphyApp Searches for animated gifs (short movie files). when u click 'add new topic' it creates a button that gives the movies below. click on them to animate, or click 'Original' to see the Full-Size Original or Source to see where they were originally found.
+Nowvia Google Voice -->
+
 
 <body>
 
@@ -32,12 +36,18 @@
   
 
 <script>
+
+// Searches for animated gifs (short movie files). when u click 'add new topic' it creates a button
+// that gives the movies below. click on them to animate, or click 'Original' to see the Full-Size 
+// Original or Source to see where they were originally found.
+
+
 		
 //giphy api: <!-- https://api.giphy.com/v1/gifs/search?q=funny+cat&api_key=dc6zaTOxFJmzC&limit=1&offset=0 -->
 
 // slug: https://media.giphy.com/media/10JNXHM9qUyIZq/giphy.gif
 
-	var topicsArray = ['pizza','waterslides','backflips'];
+	var topicsArray = ['nunchaku'];
 	var query;
 	var buttonArray = [];
 	var limit = 10;
